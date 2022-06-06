@@ -3,14 +3,15 @@ import seaborn as sns
 import numpy as np
 import random
 
+box_grid = np.zeros([20, 5])
+
 
 class Build:
     """Каркас для других классов"""
 
     max_height = 20
     min_height = 3
-    box_grid = np.zeros([max_height, 5])
-    night = True
+    night = None
 
     @classmethod
     def global_night(cls, night):
@@ -30,12 +31,6 @@ class BuildResidentialBuilding(Build):
         if BuildResidentialBuilding.check_height(height):
             self.height = height  # Высота
         self.width = width  # Ширина
-
-    @classmethod
-    def check_height(cls, arg):
-        if cls.min_height <= arg <= cls.max_height:
-            return True
-        return False
 
     def math_front(self) -> np:
         """Математические действий для фасада"""
@@ -71,8 +66,15 @@ class BuildResidentialBuilding(Build):
 
     def addendum(self) -> np:
         """Добавления к основнуму гриду грида здания"""
-        self.box_grid = np.hstack([self.box_grid, self.grid_bild])
-        return self.box_grid
+        global box_grid
+        box_grid = np.hstack([box_grid, self.grid_bild])
+        return box_grid
+
+    @classmethod
+    def check_height(cls, arg):
+        if cls.min_height <= arg <= cls.max_height:
+            return True
+        return False
 
     @staticmethod
     def math_grid(args, height: int, width: int, max_height) -> np:
@@ -86,7 +88,7 @@ class BuildResidentialBuilding(Build):
         return args
 
 
-class BuildingOffice(BuildResidentialBuilding):
+class BuildingShop(BuildResidentialBuilding):
     """Класс оффиса"""
     def __init__(self, height, width):
         super().__init__(height, width)
@@ -108,8 +110,11 @@ class BuildingOffice(BuildResidentialBuilding):
         self.grid_bild = self.grid_bild + self.grid_office
 
 
-class BuildingFabrik(BuildingOffice):
+class BuildingFabrik(BuildingShop):
     """Класс фабрики"""
+
+    max_height_fabrik = 4
+
     def __init__(self, height, width):
         super().__init__(height, width)
 
@@ -127,15 +132,27 @@ class BuildingFabrik(BuildingOffice):
         self.windows = self.math_grid(windows, self.height, self.width, self.max_height)
         self.grid_bild = self.grid_bild + self.windows
 
+    def math_pipes(self) -> np:
+        """Математические действия для труб завода"""
+        height_width = np.shape(self.grid_bild)
+
+        for i in range(0, height_width[0]):
+            for j in range(0, height_width[1]):
+                if j < self.width:
+                    if self.grid_bild[i][j] <= 0.1:
+                        if (j % 2 == 0 or j % 2.5 == 0) and i > 6 and j >= 6:
+                            self.grid_bild[i][j] = 1
+
 
 class BildVoids(Build):
     """Создание пустоты в правом краю окна приложения"""
 
     @classmethod
     def bild_voids(cls) -> np:
+        global box_grid
         voids_grid = np.zeros([cls.max_height, 5])
-        cls.box_grid = np.hstack([cls.box_grid, voids_grid])
-        return cls.box_grid
+        box_grid = np.hstack([box_grid, voids_grid])
+        return box_grid
 
 
 class BildGrass(Build):
@@ -143,22 +160,25 @@ class BildGrass(Build):
 
     @classmethod
     def bild_grass(cls) -> np:
-        grass = np.array([4 for _ in range(0, cls.box_grid.size // cls.max_height)])
-        cls.box_grid = np.vstack([cls.box_grid, grass])
-        return cls.box_grid
+        global box_grid
+        grass = np.array([4 for _ in range(0, box_grid.size // cls.max_height)])
+        box_grid = np.vstack([box_grid, grass])
+        return box_grid
 
 
 class PrintFront(Build):
+    """Визуализация"""
 
     @classmethod
     def print_front(cls):
+        global box_grid
         if cls.night:
-            sns.heatmap(cls.box_grid, annot=False, vmax=5, fmt="g", cbar=None, xticklabels=False,
+            sns.heatmap(box_grid, annot=False, vmax=5, fmt="g", cbar=None, xticklabels=False,
                         yticklabels=False)
             plt.savefig("night_visualize_numpy_array.png", bbox_inches='tight', dpi=100)
             plt.title("Визуализация массива (ночь)", fontsize=12)
         if not cls.night:
-            sns.heatmap(cls.box_grid, annot=False, vmax=5, center=2, cmap="plasma", fmt="g", cbar=None,
+            sns.heatmap(box_grid, annot=False, vmax=5, center=2, cmap="plasma", fmt="g", cbar=None,
                         xticklabels=False, yticklabels=False)
             plt.savefig("day_visualize_numpy_array.png", bbox_inches='tight', dpi=100)
             plt.title("Визуализация массива (день)", fontsize=12)
