@@ -1,5 +1,4 @@
-from ClassHighRise import BuildResidentialBuilding, BuildingShop, BuildingFabrik,\
-                           BildVoids, BildGrass, PrintFront, Build
+from ClassHighRise import *
 import random
 
 
