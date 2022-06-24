@@ -1,5 +1,6 @@
 from ClassHighRise import *
 import random
+import time
 
 
 class App:
@@ -22,21 +23,25 @@ class App:
     @staticmethod
     def run():
         Build.global_night(night=True)  # регулировка ночи
-
-        for home in range(0, 5):  # количество рандомных домов
+        for home in range(0, 100):  # количество рандомных домов
             my_random = random.randint(0, 2)
-            print(home)
+            print(f'сгенерированное здание {home + 1}', end=(' - \n' if (1 + home) % 5 == 0 else ' - '))
             if my_random == 0:
                 App.designer(BuildResidentialBuilding, [9, 19, 2], [9, 19, 2])
             elif my_random == 1:
-                App.designer(BuildingShop, [9, 19, 2], [9, 19, 2])    # регулировка высоты и ширины оффиса
+                App.designer(BuildingShop, [9, 19, 2], [9, 19, 2])  # регулировка высоты и ширины оффиса
             elif my_random == 2:
-                App.designer(BuildingFabrik, [3, 6, 2], [9, 19, 2])    # регулировка высоты и ширины фабрики
+                App.designer(BuildingFabrik, [3, 6, 2], [9, 19, 2])  # регулировка высоты и ширины фабрики
 
         BildVoids.bild_voids()  # создание правого пустого края
         BildGrass.bild_grass()  # создание травки
+
+        print("\n \n --- %s секунд ---" % (time.time() - start_time))
+        print(f"--- {(time.time() - start_time) / home} на здание ---")
+
         PrintFront.print_front()  # визуализация
 
 
 if __name__ == '__main__':
+    start_time = time.time()
     App.run()
